@@ -15,7 +15,7 @@ SPGallery.prototype.reloadFromStorage = function() {
   console.log('parsed stereoList', stereoList);
   if (stereoList) {
     for (var i = 0; i < stereoList.length; i++) {
-      this.stereos.push(stereoFromObject(stereoList[i]));
+      this.stereos.push(loadStereoFromHashtag(stereoList[i]));
     }
     this.loaded = true;
     console.log('DEBUG: loaded from storage');

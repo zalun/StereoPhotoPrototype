@@ -32,6 +32,8 @@ var app = {
     },
     takePhotos: function() {
         // take left photo
+        console.log(SPStereo);
+        console.log(SPPhoto);
         navigator.camera.getPicture(function(dataURL) {
           var left = new SPPhoto(dataURL);
           navigator.camera.getPicture(function(dataURL) {
@@ -53,6 +55,7 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
+        localStorage.removeItem('stereo-list');
         var takePhotoButton = document.getElementById('take-photo-button');
         takePhotoButton.addEventListener('click', app.takePhotos, false);
         app.gallery = new SPGallery();

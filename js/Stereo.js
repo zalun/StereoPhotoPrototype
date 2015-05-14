@@ -1,10 +1,20 @@
 var galleryUpdatedEvent = new Event('gallery-updated');
 
+function loadStereoFromHashtag(hashtag) {
+    var obj = localStorage.getItem('stereo-' + hashtag);
+    return stereoFromObject(JSON.parse(obj));
+}
+
 function stereoFromObject(obj) {
     var photoLeft = new SPPhoto(obj.photos[0].url, obj.photos[0].position);
     var photoRight = new SPPhoto(obj.photos[1].url, obj.photos[1].position);
     return new SPStereo(photoLeft, photoRight, obj.id, obj.icon, obj.rendered);
 }
+
+function SPPhoto(url, position) {
+    this.url = url;
+    this.position = position || {x: 0, y: 0};  // (in px)
+};
 
 function SPStereo(photoLeft, photoRight, id, icon, rendered) {
     this.id = id || null;
@@ -16,20 +26,19 @@ function SPStereo(photoLeft, photoRight, id, icon, rendered) {
     this.halfWidth = Math.round(this.screenWidth/2);
 };
 
+SPStereo.prototype.takePicture = function() {
+};
+
 SPStereo.prototype.display = function() {
     // this should simply displayed a rendered version
     var elem = document.getElementById('view');
     if (elem.requestFullscreen) {
-      console.log('a');
       elem.requestFullscreen();
     } else if (elem.msRequestFullscreen) {
-      console.log('b');
       elem.msRequestFullscreen();
     } else if (elem.mozRequestFullScreen) {
-      console.log('c');
       elem.mozRequestFullScreen();
     } else if (elem.webkitRequestFullscreen) {
-      console.log('d');
       elem.webkitRequestFullscreen();
     } else {
       console.log('DEBUG: no full screen allowed');
@@ -127,19 +136,27 @@ SPStereo.prototype.setId = function() {
     for( var i=0; i < 8; i++ )
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     this.id = text;
-}
+};
           
 SPStereo.prototype.save = function() {
+    var updateList = false;
     this.render();
     // create hashtag if none
     if (!this.id) {
       this.setId();
+      updateList = true;
     }
+    // save to storage
+    var stereo = JSON.stringify(this.toObject());
+    localStorage.setItem('stereo-' + this.id, stereo);
+
     // save to stereos list
-    var stereos = localStorage.getItem('stereo-list') || '[]';
-    stereos = JSON.parse(stereos);
-    stereos.push(this.toObject());
-    localStorage.setItem('stereo-list', JSON.stringify(stereos));
+    if (updateList) {
+        var stereos = localStorage.getItem('stereo-list') || '[]';
+        stereos = JSON.parse(stereos);
+        stereos.push(this.id);
+        localStorage.setItem('stereo-list', JSON.stringify(stereos));
+    }
     document.dispatchEvent(galleryUpdatedEvent);
     console.log('saved in localStorage', this.id);
     app.display('gallery');
@@ -148,4 +165,4 @@ SPStereo.prototype.save = function() {
 SPStereo.prototype.edit = function() {
     app.display('position');
     this.setPosition();
-}
+};
