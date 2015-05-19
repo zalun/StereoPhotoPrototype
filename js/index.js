@@ -32,9 +32,8 @@ var app = {
     },
     takePhotos: function() {
         // take left photo
-        console.log(SPStereo);
-        console.log(SPPhoto);
         navigator.camera.getPicture(function(dataURL) {
+          console.log('WTF');
           var left = new SPPhoto(dataURL);
           navigator.camera.getPicture(function(dataURL) {
             var right = new SPPhoto(dataURL);
@@ -55,7 +54,7 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
-        localStorage.removeItem('stereo-list');
+        // localStorage.removeItem('stereo-list');
         var takePhotoButton = document.getElementById('take-photo-button');
         takePhotoButton.addEventListener('click', app.takePhotos, false);
         app.gallery = new SPGallery();
@@ -70,6 +69,18 @@ var app = {
     },
 
     display: function(section) {
+        // var elem = document.getElementById('view');
+        // if (elem.exitFullScreen) {
+        //   elem.exitFullScreen();
+        // } else if (elem.msExitFullScreen) {
+        //   elem.msExitFullScreen();
+        // } else if (elem.mozCancelFullScreen) {
+        //   elem.mozCancelFullScreen();
+        // } else if (elem.webkitExitFullscreen) {
+        //   elem.webkitExitFullScreen();
+        // } else {
+        //   console.log('no exit from full screen');
+        // }
         var sections = document.getElementsByTagName('section');
         for (var i=0; i < sections.length; i++) {
           sections[i].style.display = 'none';

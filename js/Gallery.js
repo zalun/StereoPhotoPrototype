@@ -1,7 +1,7 @@
 function SPGallery() {
   this.stereos = [];
   this.loaded = false;
-  this.element = document.getElementById('gallery');
+  this.element = document.getElementById('gallery-list');
   var self = this;
   document.addEventListener('gallery-updated', function() {
     self.reloadFromStorage();
@@ -20,23 +20,30 @@ SPGallery.prototype.reloadFromStorage = function() {
     this.loaded = true;
     console.log('DEBUG: loaded from storage');
   }
-  var images = this.element.getElementsByTagName('img');
+  var images = this.element.getElementsByTagName('div');
   if (images) {
     for (var i = 0; i < images.length; i++) {
-      images[i].destroy();
+      console.log(images[i]);
+      images[i].remove();
     }
   }
-  console.log('stereos loaded', this.stereos);
   for (var i = 0; i < this.stereos.length; i++) {
-    var img = document.createElement('div');
     var stereo = this.stereos[i];
+    var img = document.createElement('div');
     img.style.background = "url('" + stereo.icon + "')";
+    // var img = document.createElement('img');
+    // var img = new Image();
+    // img.src = stereo.icon;
     img.stereo = stereo;
     img.addEventListener('click', function(e) {
       this.stereo.display();
     });
-    console.log('created image', img.background);
-    this.element.appendChild(img);
+    console.log('created image', img.src);
+    if (this.element.firstChild) {
+      this.element.insertBefore(img, this.element.firstChild);
+    } else {
+      this.element.appendChild(img);
+    }
   }
 };
 

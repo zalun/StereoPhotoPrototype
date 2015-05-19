@@ -31,30 +31,36 @@ SPStereo.prototype.takePicture = function() {
 
 SPStereo.prototype.display = function() {
     // this should simply displayed a rendered version
-    var elem = document.getElementById('view');
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-      elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    } else {
-      console.log('DEBUG: no full screen allowed');
-    }
+    /* var elem = document.getElementById('view'); */
+    // if (elem.requestFullscreen) {
+    //   elem.requestFullscreen();
+    // } else if (elem.msRequestFullscreen) {
+    //   elem.msRequestFullscreen();
+    // } else if (elem.mozRequestFullScreen) {
+    //   elem.mozRequestFullScreen();
+    // } else if (elem.webkitRequestFullscreen) {
+    //   elem.webkitRequestFullscreen();
+    // } else {
+    //   console.log('DEBUG: no full screen allowed');
+    // }
 
-    var left = document.getElementById('view-left');
-    left.obj = this.photos[0];
-    var right = document.getElementById('view-right');
-    right.obj = this.photos[1];
+    var image = document.getElementById('view-image');
+    image.src = this.rendered;
+    image.setAttribute('width', this.screenWidth);
+    // var left = document.getElementById('view-left');
+    // left.obj = this.photos[0];
+    // var right = document.getElementById('view-right');
+    // right.obj = this.photos[1];
     app.display('view');
-    left.src = this.photos[0].url;
-    right.src = this.photos[1].url;
-    left.setAttribute('width', this.halfWidth + 50);
-    right.setAttribute('width', this.halfWidth + 50);
-    left.style.left = left.obj.position.x + 'px';
-    left.style.top = left.obj.position.y + 'px';
+    // left.src = this.photos[0].url;
+    // right.src = this.photos[1].url;
+    // console.log(left.src);
+    // left.setAttribute('width', this.halfWidth + 50);
+    // right.setAttribute('width', this.halfWidth + 50);
+    // left.style.left = left.obj.position.x + 'px';
+    // left.style.top = left.obj.position.y + 'px';
+    // right.style.left = right.obj.position.x + 'px';
+    // right.style.top = right.obj.position.y + 'px';
 };
 
 SPStereo.prototype.setPosition = function() {
@@ -74,10 +80,13 @@ SPStereo.prototype.setPosition = function() {
     app.display('position');
     left.src = this.photos[0].url;
     right.src = this.photos[1].url;
+
     left.setAttribute('width', this.halfWidth + 50);
     right.setAttribute('width', this.halfWidth + 50);
     left.style.left = left.obj.position.x + 'px';
     left.style.top = left.obj.position.y + 'px';
+    right.style.left = right.obj.position.x + 'px';
+    right.style.top = right.obj.position.y + 'px';
 
     var cursor = {x: 0, y: 0};
 
@@ -112,9 +121,47 @@ SPStereo.prototype.setPosition = function() {
 
 };
 
+SPStereo.prototype.renderView = function(left, right) {
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext('2d');
+  canvas.width = this.screenWidth;
+  canvas.height = this.screenHeight;
+  ctx.save();
+  // for some reason we're not clipping here
+  // ctx.fillRect(0,0,this.halfWidth-1, this.screenHeight-1);
+  // ctx.clip();
+  ctx.drawImage(left, 
+      this.photos[0].position.x, this.photos[0].position.y, 
+      left.width, left.height);
+  ctx.beginPath();
+  ctx.moveTo(this.halfWidth, 0);
+  ctx.lineTo(this.screenWidth, 0);
+  ctx.lineTo(this.screenWidth, this.screenHeight);
+  ctx.lineTo(this.halfWidth, this.screenHeight);
+  ctx.lineTo(this.halfWidth, 0);
+  ctx.clip();
+  ctx.drawImage(right, 
+      this.halfWidth + this.photos[1].position.x, this.photos[1].position.y, 
+      right.width, right.height);
+  ctx.restore();
+  this.rendered = canvas.toDataURL("image/png");
+};
+
+SPStereo.prototype.renderIcon = function(left) {
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext('2d');
+  canvas.width = 100;
+  canvas.height = 100;
+  ctx.drawImage(left, 0, 0, 100, left.height*100/left.width);
+  this.icon = canvas.toDataURL("image/png");
+};
+
 SPStereo.prototype.render = function() {
   // provide an icon and a full sreen rendered graphics
-  this.icon = this.photos[0].url;
+  var left = document.getElementById('position-left');
+  var right = document.getElementById('position-right');
+  this.renderView(left, right);
+  this.renderIcon(left);
 };
 
 SPStereo.prototype.toObject = function() {

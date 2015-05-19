@@ -47,6 +47,7 @@ camera to the right"
 
 * LeftPhoto and RightPhoto are displayed next to each other.
 * User positions the images on the screen
+* User might "retake" a phot
 * User clicks SaveButton
 * App switches to GalleryPage
 

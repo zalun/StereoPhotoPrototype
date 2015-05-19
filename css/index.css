@@ -155,7 +155,10 @@ section {
 	opacity: 0.5;
 }
 
-#gallery div {
+#gallery-list {
+	overflow: scroll;
+}
+#gallery-list img, #gallery-list div {
 	float: left;
 	width: 100px;
 	height: 100px;

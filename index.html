@@ -29,6 +29,7 @@
         <title>Hello World</title>
     </head>
     <body>
+      <html-gl>
         <section id='position'>
           <div class="wrapper"><img id='position-left'/></div>
           <div class="wrapper"><img id='position-right'/></div>
@@ -36,16 +37,20 @@
         </section>
         <section id='gallery'>
             <button id='take-photo-button'>take photo</button>
+            <div id="gallery-list"></div>
         </section>
         <section id="view">
-          <div class="wrapper"><img id='view-left'/></div>
-          <div class="wrapper"><img id='view-right'/></div>
+          <!--div class="wrapper"><img id='view-left'/></div>
+          <div class="wrapper"><img id='view-right'/></div -->
+          <img id='view-image'/>
           <div class="toplayer"><button class="back-gallery">&lt;-</button></div>
         </section>
-        <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/Photo.js"></script>
-        <script type="text/javascript" src="js/Stereo.js"></script>
-        <script type="text/javascript" src="js/Gallery.js"></script>
-        <script type="text/javascript" src="js/index.js"></script>
+      </html-gl>
+      <script type="text/javascript" src="cordova.js"></script>
+      <script type="text/javascript" src="js/lib/html.js"></script>
+      <script type="text/javascript" src="js/Photo.js"></script>
+      <script type="text/javascript" src="js/Stereo.js"></script>
+      <script type="text/javascript" src="js/Gallery.js"></script>
+      <script type="text/javascript" src="js/index.js"></script>
     </body>
 </html>
