@@ -199,25 +199,29 @@ SPStereo.prototype.setId = function() {
           
 SPStereo.prototype.save = function() {
   var self = this;
-    var updateList = false;
-    app.display('gallery');
+  var updateList = false;
+  app.display('gallery');
 
-    this.render();
-    // create hashtag if none
-    if (!this.id) {
-      this.setId();
-      updateList = true;
-    }
+  try {
+    self.render();
+  } catch(err) {
+    app.display('position');
+  }
+  // create hashtag if none
+  if (!this.id) {
+    this.setId();
+    updateList = true;
+  }
 
-    // save to storage
-    localforage.setItem('stereo-' + this.id, this.toObject()).then(function() {
-      console.log('saved in localforage', self.id);
-    });
+  // save to storage
+  localforage.setItem('stereo-' + this.id, this.toObject()).then(function() {
+    console.log('saved in localforage', self.id);
+  });
 
-    // save to stereos list
-    if (updateList) {
-      app.gallery.addStereo(this);
-    }
+  // save to stereos list
+  if (updateList) {
+    app.gallery.addStereo(this);
+  }
 };
 
 SPStereo.prototype.edit = function() {

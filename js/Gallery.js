@@ -20,11 +20,9 @@ SPGallery.prototype.reloadFromStorage = function() {
     }
   }
   localforage.getItem('stereo-list').then(function(stereoList) {
-    console.log('Loaded stereoList', stereoList);
     if (stereoList) {
       for (var i = 0; i < stereoList.length; i++) {
         loadStereoFromHashtag(stereoList[i]).then(function(stereo) {
-          console.log('then stereo', stereo);
           if (stereo) {
             self.stereos.push(stereo);
             self.addIcon(stereo);
@@ -44,18 +42,26 @@ SPGallery.prototype.display = function() {
 };
 
 SPGallery.prototype.addIcon = function(stereo) {
-  console.log('display icon for', stereo.id);
-  var img = document.createElement('div');
-  img.setAttribute('id', 'icon-' + stereo.id);
-  img.style.background = "url('" + stereo.icon + "')";
-  img.stereo = stereo;
-  img.addEventListener('click', function(e) {
+  console.log('DEBUG: display icon for', stereo.id);
+  var icon = document.createElement('div');
+  icon.setAttribute('id', 'icon-' + stereo.id);
+  icon.style.background = "url('" + stereo.icon + "')";
+  var deleteButton = document.createElement('a');
+  deleteButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('delete');
+    this.parentNode.stereo.delete();
+  });
+  icon.appendChild(deleteButton);
+  icon.stereo = stereo;
+  icon.addEventListener('click', function(e) {
     this.stereo.display();
   });
   if (this.element.firstChild) {
-    this.element.insertBefore(img, this.element.firstChild);
+    this.element.insertBefore(icon, this.element.firstChild);
   } else {
-    this.element.appendChild(img);
+    this.element.appendChild(icon);
   }
 }
 

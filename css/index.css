@@ -159,12 +159,28 @@ section {
 	overflow: scroll;
 }
 #gallery-list img, #gallery-list div {
+	position: relative;
 	float: left;
 	width: 100px;
 	height: 100px;
 	background-position: 50% 50%;
 	background-repeat: no-repeat;
+	border-radius: 10px;
 }
+
+#gallery-list div a {
+	display: block;
+	width: 20px;
+	height: 20px;
+	position: relative;
+	top: 3px;
+	left: 77px;
+	background: white url("../img/delete.svg") no-repeat;
+	background-size: 90%;
+	background-position: 50% 50%;
+	border-radius: 10px;
+}
+
 .toplayer {
 	position: absolute;
 	top: 0;
