@@ -2,7 +2,12 @@ var galleryUpdatedEvent = new Event('gallery-updated');
 
 function loadStereoFromHashtag(hashtag) {
     var obj = localStorage.getItem('stereo-' + hashtag);
-    return stereoFromObject(JSON.parse(obj));
+    if (obj) {
+      return stereoFromObject(JSON.parse(obj));
+    } else {
+      console.log('DEBUG: wrong id in storage, deleting', hashtag);
+      return app.gallery.fixStereoListDelete(hashtag);
+    }
 }
 
 function stereoFromObject(obj) {
@@ -66,21 +71,24 @@ SPStereo.prototype.display = function() {
 SPStereo.prototype.setPosition = function() {
     var self = this;
 
+    var left = document.getElementById('position-left');
+    var right = document.getElementById('position-right');
+
     var save = document.getElementById('save-stereo');
     function saveStereo() {
+        self.leftSize = { width: left.width, height: left.height };
+        self.rightSize = { width: right.width, height: right.height };
+        console.log(self.leftSize);
         self.save();
         save.removeEventListener('click', saveStereo);
     }
     save.addEventListener('click', saveStereo, false);
-
-    var left = document.getElementById('position-left');
     left.obj = this.photos[0];
-    var right = document.getElementById('position-right');
     right.obj = this.photos[1];
     app.display('position');
+    
     left.src = this.photos[0].url;
     right.src = this.photos[1].url;
-
     left.setAttribute('width', this.halfWidth + 50);
     right.setAttribute('width', this.halfWidth + 50);
     left.style.left = left.obj.position.x + 'px';
@@ -118,7 +126,6 @@ SPStereo.prototype.setPosition = function() {
     function touchEnd(evt) {
       evt.preventDefault();
     }
-
 };
 
 SPStereo.prototype.renderView = function(left, right) {
@@ -132,7 +139,7 @@ SPStereo.prototype.renderView = function(left, right) {
   // ctx.clip();
   ctx.drawImage(left, 
       this.photos[0].position.x, this.photos[0].position.y, 
-      left.width, left.height);
+      this.leftSize.width, this.leftSize.height);
   ctx.beginPath();
   ctx.moveTo(this.halfWidth, 0);
   ctx.lineTo(this.screenWidth, 0);
@@ -142,7 +149,7 @@ SPStereo.prototype.renderView = function(left, right) {
   ctx.clip();
   ctx.drawImage(right, 
       this.halfWidth + this.photos[1].position.x, this.photos[1].position.y, 
-      right.width, right.height);
+      this.rightSize.width, this.rightSize.height);
   ctx.restore();
   this.rendered = canvas.toDataURL("image/png");
 };
@@ -152,7 +159,7 @@ SPStereo.prototype.renderIcon = function(left) {
   var ctx = canvas.getContext('2d');
   canvas.width = 100;
   canvas.height = 100;
-  ctx.drawImage(left, 0, 0, 100, left.height*100/left.width);
+  ctx.drawImage(left, 0, 0, 100, this.leftSize.height*100/this.leftSize.width);
   this.icon = canvas.toDataURL("image/png");
 };
 
@@ -187,6 +194,8 @@ SPStereo.prototype.setId = function() {
           
 SPStereo.prototype.save = function() {
     var updateList = false;
+    app.display('gallery');
+
     this.render();
     // create hashtag if none
     if (!this.id) {
@@ -199,17 +208,18 @@ SPStereo.prototype.save = function() {
 
     // save to stereos list
     if (updateList) {
-        var stereos = localStorage.getItem('stereo-list') || '[]';
-        stereos = JSON.parse(stereos);
-        stereos.push(this.id);
-        localStorage.setItem('stereo-list', JSON.stringify(stereos));
+      app.gallery.addStereo(this);
     }
-    document.dispatchEvent(galleryUpdatedEvent);
     console.log('saved in localStorage', this.id);
-    app.display('gallery');
 };
 
 SPStereo.prototype.edit = function() {
     app.display('position');
     this.setPosition();
+};
+
+SPStereo.prototype.delete = function() {
+  localStorage.removeItem('stereo-' + this.id);
+  app.gallery.deleteStereo(this);
+  console.log('removed', this.id);
 };
