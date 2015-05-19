@@ -1,13 +1,18 @@
 var galleryUpdatedEvent = new Event('gallery-updated');
 
 function loadStereoFromHashtag(hashtag) {
-    var obj = localStorage.getItem('stereo-' + hashtag);
-    if (obj) {
-      return stereoFromObject(JSON.parse(obj));
-    } else {
-      console.log('DEBUG: wrong id in storage, deleting', hashtag);
-      return app.gallery.fixStereoListDelete(hashtag);
-    }
+  return new Promise(function(resolve, reject) {
+    localforage.getItem('stereo-' + hashtag).then(function(obj) {
+      if (obj) {
+        console.log('resolving a promise');
+        resolve(stereoFromObject(obj));
+      } else {
+        console.log('DEBUG: wrong id in storage, deleting', hashtag);
+        app.gallery.fixStereoListDelete(hashtag);
+        throw new Error('no such stereo ' + hashtag);
+      }
+    });
+  });
 }
 
 function stereoFromObject(obj) {
@@ -193,6 +198,7 @@ SPStereo.prototype.setId = function() {
 };
           
 SPStereo.prototype.save = function() {
+  var self = this;
     var updateList = false;
     app.display('gallery');
 
@@ -202,15 +208,16 @@ SPStereo.prototype.save = function() {
       this.setId();
       updateList = true;
     }
+
     // save to storage
-    var stereo = JSON.stringify(this.toObject());
-    localStorage.setItem('stereo-' + this.id, stereo);
+    localforage.setItem('stereo-' + this.id, this.toObject()).then(function() {
+      console.log('saved in localforage', self.id);
+    });
 
     // save to stereos list
     if (updateList) {
       app.gallery.addStereo(this);
     }
-    console.log('saved in localStorage', this.id);
 };
 
 SPStereo.prototype.edit = function() {
@@ -219,7 +226,7 @@ SPStereo.prototype.edit = function() {
 };
 
 SPStereo.prototype.delete = function() {
-  localStorage.removeItem('stereo-' + this.id);
+  localforage.removeItem('stereo-' + this.id);
   app.gallery.deleteStereo(this);
   console.log('removed', this.id);
 };

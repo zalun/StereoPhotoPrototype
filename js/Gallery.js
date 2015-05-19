@@ -10,30 +10,33 @@ function SPGallery() {
 
 SPGallery.prototype.reloadFromStorage = function() {
   this.stereos = [];
-  var stereoList = localStorage.getItem('stereo-list');
-  stereoList = JSON.parse(stereoList);
-  console.log('Updating stereoList', stereoList);
-  if (stereoList) {
-    for (var i = 0; i < stereoList.length; i++) {
-      var stereo = loadStereoFromHashtag(stereoList[i]);
-      if (stereo) {
-        this.stereos.push(stereo);
-      }
-    }
-    this.loaded = true;
-    console.log('DEBUG: loaded from storage');
-  }
+  var self = this;
   console.log('DEBUG: removing icon elements');
-  var images = this.element.getElementsByTagName('div');
+  var images = self.element.getElementsByTagName('div');
   if (images.length > 0) {
     for (var i = 0; i < images.length; i++) {
       console.log('.');
       images[i].remove();
     }
   }
-  for (var i = 0; i < this.stereos.length; i++) {
-    this.addIcon(this.stereos[i]);
-  }
+  localforage.getItem('stereo-list').then(function(stereoList) {
+    console.log('Loaded stereoList', stereoList);
+    if (stereoList) {
+      for (var i = 0; i < stereoList.length; i++) {
+        loadStereoFromHashtag(stereoList[i]).then(function(stereo) {
+          console.log('then stereo', stereo);
+          if (stereo) {
+            self.stereos.push(stereo);
+            self.addIcon(stereo);
+          }
+        });
+      }
+      self.loaded = true;
+      console.log('DEBUG: loaded from storage');
+    }
+  }).catch(function(err) {
+    console.log(err);
+  });
 };
 
 SPGallery.prototype.display = function() {
@@ -75,12 +78,12 @@ SPGallery.prototype.save = function() {
   var stereoList = this.stereos.map(function(stereo) {
     return stereo.id; 
   });
-  console.log(this.stereos, stereoList);
-  localStorage.setItem('stereo-list', JSON.stringify(stereoList));
+  localforage.setItem('stereo-list', stereoList);
 };
 
 SPGallery.prototype.fixStereoListDelete = function(hashtag) {
-  var stereos = JSON.parse(localStorage.getItem('stereo-list'));
-  stereos.splice(stereos.indexOf(hashtag), 1);
-  localStorage.setItem('stereo-list', JSON.stringify(stereos));
+  localforage.getItem('stereo-list').then(function(stereos){
+    stereos.splice(stereos.indexOf(hashtag), 1);
+    localforage.setItem('stereo-list', stereos);
+  });
 };
