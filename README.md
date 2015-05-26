@@ -88,3 +88,8 @@ User Account would be useful for:
 - Sharing betweeen Users
 - Backing up the photos
 - Public image sharing
+
+### Plugins
+
+https://github.com/mesmotronic/cordova-fullscreen-plugin
+org.apache.cordova.camera

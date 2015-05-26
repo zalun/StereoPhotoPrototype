@@ -4,7 +4,6 @@ function loadStereoFromHashtag(hashtag) {
   return new Promise(function(resolve, reject) {
     localforage.getItem('stereo-' + hashtag).then(function(obj) {
       if (obj) {
-        console.log('resolving a promise');
         resolve(stereoFromObject(obj));
       } else {
         console.log('DEBUG: wrong id in storage, deleting', hashtag);
@@ -31,46 +30,27 @@ function SPStereo(photoLeft, photoRight, id, icon, rendered) {
     this.photos = [photoLeft, photoRight];
     this.icon = icon || null;
     this.rendered = rendered || null;
-    this.screenWidth = Math.max(window.screen.width, window.screen.height);
-    this.screenHeight = Math.min(window.screen.width, window.screen.height);
-    this.halfWidth = Math.round(this.screenWidth/2);
+    this.screen = {
+      width: Math.max(window.screen.width, window.screen.height),
+      height: Math.min(window.screen.width, window.screen.height),
+    };
+    this.scale = 2;
+    this.scaled = {
+      width: this.screen.width * this.scale,
+      height: this.screen.height * this.scale 
+    };
+    this.screen.half = Math.round(this.screen.width / 2);
+    this.scaled.half = Math.round(this.scaled.width / 2);
 };
 
 SPStereo.prototype.takePicture = function() {
 };
 
 SPStereo.prototype.display = function() {
-    // this should simply displayed a rendered version
-    /* var elem = document.getElementById('view'); */
-    // if (elem.requestFullscreen) {
-    //   elem.requestFullscreen();
-    // } else if (elem.msRequestFullscreen) {
-    //   elem.msRequestFullscreen();
-    // } else if (elem.mozRequestFullScreen) {
-    //   elem.mozRequestFullScreen();
-    // } else if (elem.webkitRequestFullscreen) {
-    //   elem.webkitRequestFullscreen();
-    // } else {
-    //   console.log('DEBUG: no full screen allowed');
-    // }
-
     var image = document.getElementById('view-image');
     image.src = this.rendered;
-    image.setAttribute('width', this.screenWidth);
-    // var left = document.getElementById('view-left');
-    // left.obj = this.photos[0];
-    // var right = document.getElementById('view-right');
-    // right.obj = this.photos[1];
+    image.setAttribute('width', this.screen.width);
     app.display('view');
-    // left.src = this.photos[0].url;
-    // right.src = this.photos[1].url;
-    // console.log(left.src);
-    // left.setAttribute('width', this.halfWidth + 50);
-    // right.setAttribute('width', this.halfWidth + 50);
-    // left.style.left = left.obj.position.x + 'px';
-    // left.style.top = left.obj.position.y + 'px';
-    // right.style.left = right.obj.position.x + 'px';
-    // right.style.top = right.obj.position.y + 'px';
 };
 
 SPStereo.prototype.setPosition = function() {
@@ -81,6 +61,7 @@ SPStereo.prototype.setPosition = function() {
 
     var save = document.getElementById('save-stereo');
     function saveStereo() {
+        console.log('saveStereo');
         self.leftSize = { width: left.width, height: left.height };
         self.rightSize = { width: right.width, height: right.height };
         console.log(self.leftSize);
@@ -94,8 +75,8 @@ SPStereo.prototype.setPosition = function() {
     
     left.src = this.photos[0].url;
     right.src = this.photos[1].url;
-    left.setAttribute('width', this.halfWidth + 50);
-    right.setAttribute('width', this.halfWidth + 50);
+    left.setAttribute('width', this.screen.half + 50);
+    right.setAttribute('width', this.screen.half + 50);
     left.style.left = left.obj.position.x + 'px';
     left.style.top = left.obj.position.y + 'px';
     right.style.left = right.obj.position.x + 'px';
@@ -136,44 +117,73 @@ SPStereo.prototype.setPosition = function() {
 SPStereo.prototype.renderView = function(left, right) {
   var canvas = document.createElement("canvas");
   var ctx = canvas.getContext('2d');
-  canvas.width = this.screenWidth;
-  canvas.height = this.screenHeight;
+  canvas.width = this.scaled.width;
+  canvas.height = this.scaled.height;
+  console.log('canvas', this.scaled.width, this.scaled.height);
+  console.log('left', this.photos[0].position.x, this.photos[0].position.x * this.scale);
+  // fill the whole canvas
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // ------------------------
+  // console.log('a');
+  // resample_hermite(canvas, left, 
+  //        this.photos[0].position.x, this.photos[0].position.y, 
+  //        this.leftSize.width, this.leftSize.height);
+  // console.log('b');
+  // resample_hermite(canvas, right, 
+  //        this.halfWidth + this.photos[1].position.x, this.photos[1].position.y, 
+  //        this.rightSize.width, this.rightSize.height);
+  // console.log('c');
+  // ------------------------
   ctx.save();
-  // for some reason we're not clipping here
-  // ctx.fillRect(0,0,this.halfWidth-1, this.screenHeight-1);
-  // ctx.clip();
   ctx.drawImage(left, 
-      this.photos[0].position.x, this.photos[0].position.y, 
-      this.leftSize.width, this.leftSize.height);
+      this.photos[0].position.x * this.scale, 
+      this.photos[0].position.y * this.scale, 
+      this.leftSize.width * this.scale, this.leftSize.height * this.scale);
+  ctx.fillRect(this.scaled.half, 0, canvas.width, canvas.height);
   ctx.beginPath();
-  ctx.moveTo(this.halfWidth, 0);
-  ctx.lineTo(this.screenWidth, 0);
-  ctx.lineTo(this.screenWidth, this.screenHeight);
-  ctx.lineTo(this.halfWidth, this.screenHeight);
-  ctx.lineTo(this.halfWidth, 0);
+  ctx.moveTo(this.scaled.half, 0);
+  ctx.lineTo(this.scaled.width, 0);
+  ctx.lineTo(this.scaled.width, this.scaled.height);
+  ctx.lineTo(this.scaled.half, this.scaled.height);
+  ctx.lineTo(this.scaled.half, 0);
   ctx.clip();
+  console.log(this.photos[1].position.x * this.scale);
   ctx.drawImage(right, 
-      this.halfWidth + this.photos[1].position.x, this.photos[1].position.y, 
-      this.rightSize.width, this.rightSize.height);
+      this.scaled.half + (this.photos[1].position.x * this.scale), 
+      this.photos[1].position.y * this.scale, 
+      this.rightSize.width * this.scale, this.rightSize.height * this.scale);
   ctx.restore();
+  // ------------------------
   this.rendered = canvas.toDataURL("image/png");
+  console.log('DEBUG: view render completed');
 };
 
-SPStereo.prototype.renderIcon = function(left) {
+SPStereo.prototype.renderIcon = function(image) {
   var canvas = document.createElement("canvas");
   var ctx = canvas.getContext('2d');
   canvas.width = 100;
   canvas.height = 100;
-  ctx.drawImage(left, 0, 0, 100, this.leftSize.height*100/this.leftSize.width);
+  console.log('making icon from', image);
+  ctx.drawImage(image, 0, 0, 200, image.naturalHeight*200/image.naturalWidth);
   this.icon = canvas.toDataURL("image/png");
+  console.log(this.icon);
 };
 
 SPStereo.prototype.render = function() {
-  // provide an icon and a full sreen rendered graphics
-  var left = document.getElementById('position-left');
-  var right = document.getElementById('position-right');
-  this.renderView(left, right);
-  this.renderIcon(left);
+  var self = this;
+  return new Promise(function(resolve, reject) {
+    // provide an icon and a full sreen rendered graphics
+    var left = document.getElementById('position-left');
+    var right = document.getElementById('position-right');
+    self.renderView(left, right);
+    var image = new Image();
+    image.addEventListener('load', function() {
+      self.renderIcon(image);
+      resolve();
+    });
+    image.src = self.rendered;
+  });
 };
 
 SPStereo.prototype.toObject = function() {
@@ -202,26 +212,28 @@ SPStereo.prototype.save = function() {
   var updateList = false;
   app.display('gallery');
 
-  try {
-    self.render();
-  } catch(err) {
+  self.render().then(function() {
+    // create hashtag if none
+    console.log(self);
+    if (!self.id) {
+      self.setId();
+      updateList = true;
+    }
+
+    // save to storage
+    localforage.setItem('stereo-' + self.id, self.toObject()).then(function() {
+      console.log('saved in localforage', self.id);
+    });
+
+    // save to stereos list
+    if (updateList) {
+      app.gallery.addStereo(self);
+    }
+  }).catch(function(err) {
+    console.log('Some error', err);
     app.display('position');
-  }
-  // create hashtag if none
-  if (!this.id) {
-    this.setId();
-    updateList = true;
-  }
-
-  // save to storage
-  localforage.setItem('stereo-' + this.id, this.toObject()).then(function() {
-    console.log('saved in localforage', self.id);
+    alert('error');
   });
-
-  // save to stereos list
-  if (updateList) {
-    app.gallery.addStereo(this);
-  }
 };
 
 SPStereo.prototype.edit = function() {

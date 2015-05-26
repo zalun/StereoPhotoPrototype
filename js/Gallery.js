@@ -50,7 +50,6 @@ SPGallery.prototype.addIcon = function(stereo) {
   deleteButton.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    console.log('delete');
     this.parentNode.stereo.delete();
   });
   icon.appendChild(deleteButton);
